@@ -24,6 +24,7 @@ RUN if [ "$DOCKER_BUILD_MIRROR" = "china" ]; then \
     ( \
         for i in 1 2 3; do \
             echo "Attempt $i: installing system dependencies"; \
+            rm -rf /var/lib/apt/lists/*; \
             apt-get update && apt-get install -y --no-install-recommends \
                 git \
                 imagemagick \
@@ -50,7 +51,8 @@ RUN if [ "$DOCKER_BUILD_MIRROR" = "china" ]; then \
                 ); \
             fi; \
             sleep 5; \
-        done \
+        done; \
+        command -v git >/dev/null && command -v convert >/dev/null && command -v ffmpeg >/dev/null \
     ) && rm -rf /var/lib/apt/lists/*
 
 # Fix security policy for ImageMagick
