@@ -543,7 +543,7 @@ def _generate_response(prompt: str) -> str:
             headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
             json={
                 "model": "typesafe/jev-router",
-                "plugins": [{"id": "jev-router", "cost_tier": tier}],
+                "plugins": [{"id": "jev-router", "cost_tier": tier, "excluded_models": ["anthropic/*", "openai/*", "google/*"]}],
                 "messages": [{"role": "user", "content": prompt}],
             },
             timeout=120,
