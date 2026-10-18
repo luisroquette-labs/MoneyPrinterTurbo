@@ -52,7 +52,7 @@ class TestScriptPromptOptions(unittest.TestCase):
 
         payload = post.call_args.kwargs["json"]
         self.assertEqual(payload["model"], "typesafe/jev-router")
-        self.assertEqual(payload["plugins"], [{"id": "jev-router", "cost_tier": "low"}])
+        self.assertEqual(payload["plugins"], [{"id": "jev-router", "cost_tier": "low", "excluded_models": ["anthropic/*", "openai/*", "google/*"]}])
 
     def test_openrouter_copy_requires_the_dedicated_moneyprinter_key(self):
         root = Path(__file__).parent.parent.parent
