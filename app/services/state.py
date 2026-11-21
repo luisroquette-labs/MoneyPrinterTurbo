@@ -7,7 +7,6 @@ from app.config import config
 from app.models import const
 
 
-# Base class for state management
 class BaseState(ABC):
     @abstractmethod
     def update_task(self, task_id: str, state: int, progress: int = 0, **kwargs):
@@ -22,7 +21,6 @@ class BaseState(ABC):
         pass
 
 
-# Memory state management
 class MemoryState(BaseState):
     def __init__(self):
         self._tasks = {}
@@ -65,7 +63,6 @@ class MemoryState(BaseState):
             self._tasks.pop(task_id, None)
 
 
-# Redis state management
 class RedisState(BaseState):
     """
     Redis-backed task state.
@@ -94,9 +91,6 @@ class RedisState(BaseState):
             batch_size = len(keys)
             total += batch_size
 
-            # Redis SCAN 是分批返回 key。分页切片必须基于“当前批次起始索引”
-            # 计算，而不能用累积后的 total 反推，否则第一页会切到空数组，
-            # 第二页也可能只返回部分数据。
             if batch_start < end and total > start:
                 slice_start = max(0, start - batch_start)
                 slice_end = min(batch_size, end - batch_start)
@@ -108,8 +102,6 @@ class RedisState(BaseState):
                     }
                     tasks.append(task)
 
-            # 即使当前页已经取满，也要继续 SCAN 到 cursor=0，
-            # 因为调用方需要准确 total 来渲染分页信息。
             if cursor == 0:
                 break
         return tasks, total
@@ -162,18 +154,15 @@ class RedisState(BaseState):
         value_str = value.decode("utf-8")
 
         try:
-            # try to convert byte string array to list
             return ast.literal_eval(value_str)
         except (ValueError, SyntaxError):
             pass
 
         if value_str.isdigit():
             return int(value_str)
-        # Add more conversions here if needed
         return value_str
 
 
-# Global state
 _enable_redis = config.app.get("enable_redis", False)
 _redis_host = config.app.get("redis_host", "localhost")
 _redis_port = config.app.get("redis_port", 6379)
