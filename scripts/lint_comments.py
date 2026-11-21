@@ -4,6 +4,7 @@ import sys
 import tokenize
 from io import StringIO
 from pathlib import Path
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 BASELINE = ROOT / "scripts/comment-baseline.json"
@@ -50,6 +51,18 @@ def hash_lines(source, name):
     return found
 
 
+def yaml_lines(source):
+    occupied = [
+        (token.start_mark.index, token.end_mark.index)
+        for token in yaml.scan(source)
+    ]
+    found = set()
+    for offset, char in enumerate(source):
+        if char == "#" and not any(start <= offset < end for start, end in occupied):
+            found.add(source.count("\n", 0, offset) + 1)
+    return found
+
+
 assert python_lines('url = "https://example.test/#frag"\n') == set()
 assert python_lines('x = 1 # why\n') == {1}
 assert python_lines('x = 1 #! bypass\n') == {1}
@@ -58,6 +71,9 @@ assert hash_lines('x = 1 # why\n', 'x.toml') == {1}
 assert hash_lines('url: https://example.test/#frag\n', 'x.yml') == set()
 assert hash_lines('echo foo#bar\n', 'x.sh') == set()
 assert hash_lines('\\#literal\n', '.gitignore') == set()
+assert yaml_lines("title: don't # new explanation\n") == {1}
+assert yaml_lines('run: echo "hello # world" # new explanation\n') == {1}
+assert yaml_lines('title: "hello # world"\n') == set()
 
 files = subprocess.check_output(
     ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd=ROOT
@@ -69,7 +85,9 @@ for name in files:
         continue
     if path.suffix == ".py":
         lines = python_lines(path.read_text())
-    elif path.suffix in {".toml", ".yml", ".yaml", ".sh"} or path.name in {
+    elif path.suffix in {".yml", ".yaml"}:
+        lines = yaml_lines(path.read_text())
+    elif path.suffix in {".toml", ".sh"} or path.name in {
         ".gitignore", ".dockerignore", "Dockerfile", "Dockerfile.gpu"
     }:
         lines = hash_lines(path.read_text(), path.name)
