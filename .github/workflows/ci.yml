@@ -39,6 +39,9 @@ jobs:
       - name: Compile Python sources
         run: uv run python -m compileall app cli.py main.py webui test
 
+      - name: Enforce comment ratchet
+        run: uv run python scripts/lint_comments.py
+
       - name: Bloquear Claude Sonnet 4.5 aposentado
         run: uv run python scripts/check_retired_claude_models.py
 
