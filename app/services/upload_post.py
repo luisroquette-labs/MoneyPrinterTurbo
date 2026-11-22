@@ -123,7 +123,6 @@ class UploadPostService:
             return {"success": False, "error": str(e)}
 
 
-# Singleton instance
 upload_post_service = UploadPostService()
 
 

@@ -12,8 +12,6 @@ from app.models.schema import (
 from app.services import llm
 from app.utils import utils
 
-# authentication dependency
-# router = new_router(dependencies=[Depends(base.verify_token)])
 router = new_router()
 
 
