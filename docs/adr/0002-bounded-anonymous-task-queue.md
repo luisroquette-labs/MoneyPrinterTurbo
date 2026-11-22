@@ -12,4 +12,4 @@ Keep a maximum queued-task count. Reject a new task with `TaskQueueFullError` wh
 
 ## Consequences
 
-Callers can receive a queue-full error during high load and retry later. The queue remains bounded even when requests arrive faster than workers can process them.
+Callers can receive a queue-full error during high load and retry later. The in-process limit prevents unlimited admission by one worker. With multiple Redis workers, counting and enqueuing are separate operations, so the limit can be exceeded in a race; strict cross-worker enforcement is tracked separately.
